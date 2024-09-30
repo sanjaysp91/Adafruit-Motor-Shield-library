@@ -6,7 +6,7 @@
 #include <Servo.h> 
 
 // DC motor on M2
-AF_DCMotor motor(2);
+AF_DCMotor motor(3);
 // DC hobby servo
 Servo servo1;
 // Stepper motor on M3+M4 48 steps per revolution
