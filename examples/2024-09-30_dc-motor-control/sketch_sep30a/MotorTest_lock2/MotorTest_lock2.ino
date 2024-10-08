@@ -23,9 +23,18 @@ const float alpha = 0.1;  // Low-pass filter coefficient
 // Define a threshold to decide between HIGH and LOW
 const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
 const int debug = 0; 
+
+// Define time keepers
+unsigned long startTime = 0;
+unsigned long endTime = 0;
+
 // Function prototypes
 void handleUnlocking();
 void handleLocking();
+
+int tic();
+int toc();
+void tic_toc_print(); 
 
 void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
@@ -41,6 +50,8 @@ void setup() {
 }
 
 void loop() {
+  startTime = tic();  // Start execution timer
+
   // Read the raw analog values from the Hall sensors
   int rawUnlocked = analogRead(hallSensorUnlocked);
   int rawLocked = analogRead(hallSensorLocked);
@@ -51,29 +62,20 @@ void loop() {
 
   if (debug) {
       // Debug output to monitor raw and filtered values
-      Serial.print("Raw Unlocked: ");
-      Serial.print(rawUnlocked);
-      Serial.print("\tFiltered Unlocked: ");
-      Serial.println(filteredUnlocked);
+      Serial.print("Raw Unlocked: ");   Serial.print(rawUnlocked);
+      Serial.print("\tFiltered Unlocked: ");  Serial.println(filteredUnlocked);
 
-      Serial.print("Raw Locked: ");
-      Serial.print(rawLocked);
-      Serial.print("\tFiltered Locked: ");
-      Serial.println(filteredLocked);
+      Serial.print("Raw Locked: ");   Serial.print(rawLocked);
+      Serial.print("\tFiltered Locked: ");  Serial.println(filteredLocked);
   }
 
   // Determine the states based on the filtered values
   bool unlockedState = filteredUnlocked > threshold;
   bool lockedState = filteredLocked > threshold;
 
-  // // Read the Hall sensor states
-  // unlockedState = analogRead(hallSensorUnlocked);  // Read sensor for "unlocked"
-  // lockedState = analogRead(hallSensorLocked);      // Read sensor for "locked"
-  // // print the results to the Serial Monitor:
-  Serial.print("unlockedState = ");
-  Serial.print(unlockedState);
-  Serial.print("\t lockedState = ");
-  Serial.println(lockedState);
+  // print the states: 
+  Serial.print("unlockedState = ");   Serial.print(unlockedState);
+  Serial.print("\t lockedState = ");  Serial.println(lockedState);
 
   if (unlockedState == HIGH && lockedState == LOW) {
     handleLocking();
@@ -88,7 +90,9 @@ void loop() {
   }
 
   // Small delay to avoid too frequent polling
-  delay(100);
+  delay(1000);
+  endTime = toc();  // Stop execution timer
+  tic_toc_print(startTime, endTime);  // Print execution time
 }
 
 // Function to handle unlocking (motor runs forward)
@@ -97,6 +101,7 @@ void handleLocking() {
   if (debug) Serial.println("Lock is unlocked - Motor running forward...");
   motor.run(FORWARD);
   motor.setSpeed(100);  // Full speed forward
+
 }
 
 // Function to handle locking (motor runs backward)
@@ -105,4 +110,28 @@ void handleUnlocking() {
   if (debug) Serial.println("Lock is locked - Motor running backward...");
   motor.run(BACKWARD);
   motor.setSpeed(255);  // Full speed backward
+}
+
+// Function to start execution timer 
+int tic() {
+  // Start time measurement
+  unsigned long startTime = millis();
+  if (debug) Serial.print("Start time (ms): ");
+  if (debug) Serial.println(startTime);
+  return startTime;
+}
+
+// Function to stop execution timer 
+int toc() {
+    // End time measurement
+  unsigned long endTime = millis();
+  if (debug) {Serial.print("End time (ms): ");  Serial.println(endTime);}
+  return endTime;
+}
+
+// Function to print execution time 
+void tic_toc_print(unsigned long startTime, unsigned long endTime) {
+  // Calculate and print execution time
+  unsigned long executionTime = endTime - startTime;
+  Serial.print("Execution time (ms): ");  Serial.println(executionTime); 
 }
