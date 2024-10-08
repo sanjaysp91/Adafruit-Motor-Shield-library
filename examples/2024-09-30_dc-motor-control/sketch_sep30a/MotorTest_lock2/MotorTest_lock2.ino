@@ -23,6 +23,8 @@ const float alpha = 0.1;  // Low-pass filter coefficient
 // Define a threshold to decide between HIGH and LOW
 const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
 const int debug = 0; 
+const int PARAM_START_DUTY = 100;
+const int PARAM_MAX_DUTY = 100;
 
 // Define time keepers
 unsigned long startTime = 0;
@@ -100,7 +102,8 @@ void handleLocking() {
   // If the lock is unlocked, run the motor forward
   if (debug) Serial.println("Lock is unlocked - Motor running forward...");
   motor.run(FORWARD);
-  motor.setSpeed(100);  // Full speed forward
+  int speed = 100;
+  motor.setSpeed(PARAM_START_DUTY);  // Full speed forward
 
 }
 
@@ -109,7 +112,7 @@ void handleUnlocking() {
   // If the lock is locked, run the motor backward
   if (debug) Serial.println("Lock is locked - Motor running backward...");
   motor.run(BACKWARD);
-  motor.setSpeed(255);  // Full speed backward
+  motor.setSpeed(PARAM_MAX_DUTY);  // Full speed backward
 }
 
 // Function to start execution timer 
