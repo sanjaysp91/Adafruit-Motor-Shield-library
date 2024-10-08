@@ -25,7 +25,7 @@ const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
 const int debug = 0; 
 const int PARAM_START_DUTY = 100;
 const int PARAM_MAX_DUTY = 100;
-
+int speed = PARAM_START_DUTY; 
 // Define time keepers
 unsigned long startTime = 0;
 unsigned long endTime = 0;
@@ -102,9 +102,10 @@ void handleLocking() {
   // If the lock is unlocked, run the motor forward
   if (debug) Serial.println("Lock is unlocked - Motor running forward...");
   motor.run(FORWARD);
-  int speed = 100;
-  motor.setSpeed(PARAM_START_DUTY);  // Full speed forward
-
+  speed = speed + 10; 
+  motor.setSpeed(speed);  // Full speed forward
+  Serial.print("Speed: ");
+  Serial.println(speed);
 }
 
 // Function to handle locking (motor runs backward)
