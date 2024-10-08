@@ -74,17 +74,9 @@ void loop() {
   Serial.println(lockedState);
 
   if (unlockedState == HIGH && lockedState == LOW) {
-    // If the lock is unlocked, run the motor forward
-    // Serial.println("Lock is unlocked - Motor running forward...");
-    // motor.run(FORWARD);
-    // motor.setSpeed(255);  // Full speed forward
     handleLocking();
 
   } else if (lockedState == HIGH && unlockedState == LOW) {
-    // If the lock is locked, run the motor backward
-    // Serial.println("Lock is locked - Motor running backward...");
-    // motor.run(BACKWARD);
-    // motor.setSpeed(255);  // Full speed backward
     handleUnlocking();
 
   } else {
@@ -99,6 +91,7 @@ void loop() {
 
 // Function to handle unlocking (motor runs forward)
 void handleLocking() {
+  // If the lock is unlocked, run the motor forward
   Serial.println("Lock is unlocked - Motor running forward...");
   motor.run(FORWARD);
   motor.setSpeed(255);  // Full speed forward
@@ -106,6 +99,7 @@ void handleLocking() {
 
 // Function to handle locking (motor runs backward)
 void handleUnlocking() {
+  // If the lock is locked, run the motor backward
   Serial.println("Lock is locked - Motor running backward...");
   motor.run(BACKWARD);
   motor.setSpeed(255);  // Full speed backward
