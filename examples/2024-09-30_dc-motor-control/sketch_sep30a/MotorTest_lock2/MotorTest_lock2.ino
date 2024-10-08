@@ -22,7 +22,7 @@ const float alpha = 0.1;  // Low-pass filter coefficient
 
 // Define a threshold to decide between HIGH and LOW
 const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
-
+const int debug = 0; 
 // Function prototypes
 void handleUnlocking();
 void handleLocking();
@@ -49,16 +49,18 @@ void loop() {
   filteredUnlocked = alpha * rawUnlocked + (1 - alpha) * filteredUnlocked;
   filteredLocked = alpha * rawLocked + (1 - alpha) * filteredLocked;
 
-  // Debug output to monitor raw and filtered values
-  Serial.print("Raw Unlocked: ");
-  Serial.print(rawUnlocked);
-  Serial.print("\tFiltered Unlocked: ");
-  Serial.println(filteredUnlocked);
+  if (debug) {
+      // Debug output to monitor raw and filtered values
+      Serial.print("Raw Unlocked: ");
+      Serial.print(rawUnlocked);
+      Serial.print("\tFiltered Unlocked: ");
+      Serial.println(filteredUnlocked);
 
-  Serial.print("Raw Locked: ");
-  Serial.print(rawLocked);
-  Serial.print("\tFiltered Locked: ");
-  Serial.println(filteredLocked);
+      Serial.print("Raw Locked: ");
+      Serial.print(rawLocked);
+      Serial.print("\tFiltered Locked: ");
+      Serial.println(filteredLocked);
+  }
 
   // Determine the states based on the filtered values
   bool unlockedState = filteredUnlocked > threshold;
