@@ -23,6 +23,10 @@ const float alpha = 0.1;  // Low-pass filter coefficient
 // Define a threshold to decide between HIGH and LOW
 const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
 
+// Function prototypes
+void handleUnlocking();
+void handleLocking();
+
 void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
   Serial.println("Motor with Hall Sensor control!");
@@ -71,15 +75,17 @@ void loop() {
 
   if (unlockedState == HIGH && lockedState == LOW) {
     // If the lock is unlocked, run the motor forward
-    Serial.println("Lock is unlocked - Motor running forward...");
-    motor.run(FORWARD);
-    motor.setSpeed(255);  // Full speed forward
+    // Serial.println("Lock is unlocked - Motor running forward...");
+    // motor.run(FORWARD);
+    // motor.setSpeed(255);  // Full speed forward
+    handleLocking();
 
   } else if (lockedState == HIGH && unlockedState == LOW) {
     // If the lock is locked, run the motor backward
-    Serial.println("Lock is locked - Motor running backward...");
-    motor.run(BACKWARD);
-    motor.setSpeed(255);  // Full speed backward
+    // Serial.println("Lock is locked - Motor running backward...");
+    // motor.run(BACKWARD);
+    // motor.setSpeed(255);  // Full speed backward
+    handleUnlocking();
 
   } else {
     // If no clear lock/unlock signal, stop the motor
@@ -89,4 +95,18 @@ void loop() {
 
   // Small delay to avoid too frequent polling
   delay(100);
+}
+
+// Function to handle unlocking (motor runs forward)
+void handleLocking() {
+  Serial.println("Lock is unlocked - Motor running forward...");
+  motor.run(FORWARD);
+  motor.setSpeed(255);  // Full speed forward
+}
+
+// Function to handle locking (motor runs backward)
+void handleUnlocking() {
+  Serial.println("Lock is locked - Motor running backward...");
+  motor.run(BACKWARD);
+  motor.setSpeed(255);  // Full speed backward
 }
