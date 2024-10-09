@@ -88,13 +88,59 @@ void loop() {
   startTime = tic();  // Start execution timer
 
   // Update the present lock state based on sensor input 
-  // // Read the raw analog values from the Hall sensors
-  // int rawUnlocked = analogRead(hallSensorUnlocked);
-  // int rawLocked = analogRead(hallSensorLocked);
   presentLockState = updateLockState();
 
+  // State machine to handle motor behavior based on lock state 
+  switch (presentMotorState) {
+    case MOTOR_STOPPED:
+      if (presentLockState == UNLOCKED) {
+        Serial.println("State: Unlocked - Initiating Ramp Up Forward"); 
+        presentMotorState = MOTOR_RAMPING_UP; 
+        motor.run(FORWARD);
+        targetSpeed = 255;
+        presentSpeed = 0; 
+        lastRampTime = millis(); 
+      }
+      else if (presentLockState == LOCKED) {
+        Serial.println("State: Locked - Initiating Ramp Up Backward");
+        presentMotorState = MOTOR_RAMPING_UP;
+        motor.run(BACKWARD);
+        targetSpeed = 255;
+        presentSpeed = 0;
+        lastRampTime = millis(); 
+      }
+      break;
 
+    case MOTOR_RAMPING_UP:
+      rampUp();
+      break;
 
+    case MOTOR_RUNNING:
+      // Maintain full speed or implement any running behavior here
+      // For simplicity, we'll just wait for state changes
+      break; 
+
+    case MOTOR_RAMPING_DOWN:
+      rampDown();
+      break;   
+  }
+
+  // Small delay to prevent overwhelming the serial monitor
+  delay(10);
+
+}  
+
+//   // Small delay to avoid too frequent polling
+//   delay(1000);
+//   endTime = toc();  // Stop execution timer
+//   tic_toc_print(startTime, endTime);  // Print execution time
+// }
+
+// Function to update the current lock state based on sensor inputs
+LockState updateLockState() {
+  // Read the raw analog values from the Hall sensors
+  int rawUnlocked = analogRead(hallSensorUnlocked);
+  int rawLocked = analogRead(hallSensorLocked);
 
   // Apply a low-pass filter (moving average)
   filteredUnlocked = alpha * rawUnlocked + (1 - alpha) * filteredUnlocked;
@@ -102,11 +148,11 @@ void loop() {
 
   if (debug) {
       // Debug output to monitor raw and filtered values
-      Serial.print("Raw Unlocked: ");   Serial.print(rawUnlocked);
-      Serial.print("\tFiltered Unlocked: ");  Serial.println(filteredUnlocked);
+      Serial.print("Raw Unlocked: ");           Serial.print(rawUnlocked);
+      Serial.print("\tFiltered Unlocked: ");    Serial.println(filteredUnlocked);
 
-      Serial.print("Raw Locked: ");   Serial.print(rawLocked);
-      Serial.print("\tFiltered Locked: ");  Serial.println(filteredLocked);
+      Serial.print("Raw Locked: ");             Serial.print(rawLocked);
+      Serial.print("\tFiltered Locked: ");      Serial.println(filteredLocked);
   }
 
   // Determine the states based on the filtered values
@@ -114,8 +160,8 @@ void loop() {
   bool lockedState = filteredLocked > threshold;
 
   // print the states: 
-  Serial.print("unlockedState = ");   Serial.print(unlockedState);
-  Serial.print("\t lockedState = ");  Serial.println(lockedState);
+  Serial.print("unlockedState = ");             Serial.print(unlockedState);
+  Serial.print("\t lockedState = ");            Serial.println(lockedState);
 
   if (unlockedState == HIGH && lockedState == LOW) {
     handleLocking();
@@ -129,10 +175,40 @@ void loop() {
     motor.run(RELEASE);  // Stop the motor
   }
 
-  // Small delay to avoid too frequent polling
-  delay(1000);
-  endTime = toc();  // Stop execution timer
-  tic_toc_print(startTime, endTime);  // Print execution time
+
+
+  bool isUnlocked = analogRead(hallSensorUnlocked) == HIGH;
+  bool isLocked = analogRead(hallSensorLocked) == HIGH; 
+
+  // Determine the lock state 
+  if (isUnlocked && !isLocked) {
+    return UNLOCKED;
+  }
+  else if (isLocked && !isUnlocked) {
+    return LOCKED;
+  }
+  else {
+    // Handle conflict
+    return presentLockState;
+  }
+}
+
+// Function to ramp up the motor speed
+void rampUp() {
+  // Write a ramp up function 
+  // For now keep it simple
+  motor.setSpeed(150);
+  presentSpeed = 149;   // Update from virtual sensor 
+  Serial.print("Ramping Up - Present Speed: ");   Serial.println(presentSpeed); 
+}
+
+// Function to ramp down the motor speed
+void rampDown() {
+  // Write a ramp down function 
+  // For now keep it simple
+  motor.setSpeed(0);
+  presentSpeed = 0;   // Update from virtual sensor 
+  Serial.print("Ramping Up - Present Speed: ");   Serial.println(presentSpeed); 
 }
 
 // Function to handle unlocking (motor runs forward)
@@ -175,5 +251,5 @@ int toc() {
 void tic_toc_print(unsigned long startTime, unsigned long endTime) {
   // Calculate and print execution time
   unsigned long executionTime = endTime - startTime;
-  Serial.print("Execution time (ms): ");  Serial.println(executionTime); 
+  Serial.print("Execution time (ms): ");        Serial.println(executionTime); 
 }
