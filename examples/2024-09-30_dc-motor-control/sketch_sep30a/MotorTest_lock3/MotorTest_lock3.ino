@@ -13,21 +13,28 @@ const int hallSensorLocked = A11;    // Sensor for "locked" state
 
 // Define lock states 
 enum LockState {
+  INIT,
   LOCKED,
-  UNLOCKED
+  UNLOCKED,
+  INVALID
 }; 
 
 // Define motor states
 enum MotorState {
+  MOTOR_IDLE, 
   MOTOR_STOPPED, 
   MOTOR_RAMPING_UP, 
   MOTOR_RUNNING, 
   MOTOR_RAMPING_DOWN
 }; 
 
+// previous states 
+LockState previousLockState = INIT; 
+MotorState previousMotorState = MOTOR_IDLE; 
+
 // present states 
-LockState presentLockState = LOCKED; 
-MotorState presentMotorState = MOTOR_STOPPED; 
+LockState presentLockState = INIT; 
+MotorState presentMotorState = MOTOR_IDLE; 
 
 // Variables for ramping 
 int targetSpeed = 255;              // Target speed
@@ -92,6 +99,11 @@ void loop() {
 
   // State machine to handle motor behavior based on lock state 
   switch (presentMotorState) {
+    case MOTOR_IDLE:
+      if (presentLockState == INIT || INVALID) {
+        // do nothing
+        motor.run(RELEASE);  // Stop the motor
+      }
     case MOTOR_STOPPED:
       if (presentLockState == UNLOCKED) {
         Serial.println("State: Unlocked - Initiating Ramp Up Forward"); 
@@ -125,8 +137,8 @@ void loop() {
       break;   
   }
 
-  // Small delay to prevent overwhelming the serial monitor
-  delay(10);
+  // Small delay e.g. 10ms to prevent overwhelming the serial monitor
+  delay(1000);
 
 }  
 
@@ -160,8 +172,10 @@ LockState updateLockState() {
   bool lockedState = filteredLocked > threshold;
 
   // print the states: 
-  Serial.print("unlockedState = ");             Serial.print(unlockedState);
-  Serial.print("\t lockedState = ");            Serial.println(lockedState);
+  if (debug) {
+    Serial.print("unlockedState = ");             Serial.print(unlockedState);
+    Serial.print("\t lockedState = ");            Serial.println(lockedState);
+  }
 
   if (unlockedState == HIGH && lockedState == LOW) {
     handleLocking();
@@ -171,15 +185,13 @@ LockState updateLockState() {
 
   } else {
     // If no clear lock/unlock signal, stop the motor
-    Serial.println("No valid sensor input - Motor stopped.");
-    motor.run(RELEASE);  // Stop the motor
+    Serial.println("No valid sensor input");
   }
 
+  bool isUnlocked = unlockedState;
+  bool isLocked = lockedState; 
 
-
-  bool isUnlocked = analogRead(hallSensorUnlocked) == HIGH;
-  bool isLocked = analogRead(hallSensorLocked) == HIGH; 
-
+  previousLockState = presentLockState; 
   // Determine the lock state 
   if (isUnlocked && !isLocked) {
     return UNLOCKED;
@@ -190,6 +202,9 @@ LockState updateLockState() {
   else {
     // Handle conflict
     return presentLockState;
+  }
+  if (presentLockState != previousLockState) {
+    Serial.print("Lock State changed");
   }
 }
 
