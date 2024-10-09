@@ -125,6 +125,7 @@ void loop() {
 
     case MOTOR_RAMPING_UP:
       rampUp();
+      presentMotorState = MOTOR_RUNNING;
       break;
 
     case MOTOR_RUNNING:
@@ -177,16 +178,16 @@ LockState updateLockState() {
     Serial.print("\t lockedState = ");            Serial.println(lockedState);
   }
 
-  if (unlockedState == HIGH && lockedState == LOW) {
-    handleLocking();
+  // if (unlockedState == HIGH && lockedState == LOW) {
+  //   handleLocking();
 
-  } else if (lockedState == HIGH && unlockedState == LOW) {
-    handleUnlocking();
+  // } else if (lockedState == HIGH && unlockedState == LOW) {
+  //   handleUnlocking();
 
-  } else {
-    // If no clear lock/unlock signal, stop the motor
-    Serial.println("No valid sensor input");
-  }
+  // } else {
+  //   // If no clear lock/unlock signal, stop the motor
+  //   Serial.println("No valid sensor input");
+  // }
 
   bool isUnlocked = unlockedState;
   bool isLocked = lockedState; 
@@ -200,7 +201,8 @@ LockState updateLockState() {
     return LOCKED;
   }
   else {
-    // Handle conflict
+    // Handle conflict 
+    Serial.println("No valid sensor input");
     return presentLockState;
   }
   if (presentLockState != previousLockState) {
