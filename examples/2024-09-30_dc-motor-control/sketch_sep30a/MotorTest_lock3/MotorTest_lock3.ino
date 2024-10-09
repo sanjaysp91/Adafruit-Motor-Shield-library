@@ -58,10 +58,10 @@ int lockedState = 0;    // State for "locked"
 // Variables for filtering analog values
 float filteredUnlocked = 0;
 float filteredLocked = 0;
-const float alpha = 0.1;  // Low-pass filter coefficient
+const float alpha = 0.7;  // Low-pass filter coefficient
 
 // Define a threshold to decide between HIGH and LOW
-const int threshold = 375;  // Midpoint of 1023 (adjust as necessary)
+const int threshold = 300;  // Midpoint of 1023 (adjust as necessary)
 const int debug = 0; 
 const int PARAM_START_DUTY = 100;
 const int PARAM_MAX_DUTY = 100;
@@ -131,6 +131,9 @@ void loop() {
     case MOTOR_RUNNING:
       // Maintain full speed or implement any running behavior here
       // For simplicity, we'll just wait for state changes
+      Serial.println("Motor Running");
+      delay(5000);
+      presentMotorState = MOTOR_RAMPING_DOWN;
       break; 
 
     case MOTOR_RAMPING_DOWN:
@@ -173,7 +176,7 @@ LockState updateLockState() {
   bool lockedState = filteredLocked > threshold;
 
   // print the states: 
-  if (debug) {
+  if (1) {
     Serial.print("unlockedState = ");             Serial.print(unlockedState);
     Serial.print("\t lockedState = ");            Serial.println(lockedState);
   }
@@ -204,6 +207,7 @@ LockState updateLockState() {
     // Handle conflict 
     Serial.println("No valid sensor input");
     return presentLockState;
+    Serial.print(presentLockState);
   }
   if (presentLockState != previousLockState) {
     Serial.print("Lock State changed");
